@@ -1,14 +1,22 @@
 const express = require('express');
 const cheerio = require('cheerio');
-const puppeteer = require('puppeteer');
+// const puppeteer = require('puppeteer');
 const app = express();
 const path = require("path");
+const serverless = require('serverless-http');
+const puppeteer = require('puppeteer-core');
+const chromium = require('@sparticuz/chromium');
+const cors = require('cors');
+
+app.use(cors({
+    origin: '*'
+}));
 
 app.use(express.static(__dirname + '/public'));
 
 app.use(express.json())
 
-app.get('/maps', function(req, res) {
+app.get('/maps', function (req, res) {
     let lat1 = req.query.lat1;
     let lon1 = req.query.lon1;
     let lat2 = req.query.lat2;
@@ -25,9 +33,19 @@ app.post('/', async function (req, res) {
     let unit = req.body.unit;
     let url = `http://localhost:8888/direction/map.html?lat1=${lat1}&lon1=${lon1}&lat2=${lat2}&lon2=${lon2}`;
 
-    const browser = await puppeteer.launch();
+    const browser = await puppeteer.launch({
+        args: chromium.args,
+        defaultViewport: chromium.defaultViewport,
+        executablePath: await chromium.executablePath(),
+        headless: chromium.headless,
+        ignoreHTTPSErrors: true,
+    });
     const page = await browser.newPage();
-    await page.goto(url, { waitUntil: 'networkidle0' });
+    await page.goto(url);
+
+    // const browser = await puppeteer.launch();
+    // const page = await browser.newPage();
+    // await page.goto(url, { waitUntil: 'networkidle0' });
 
     // Now you can evaluate JavaScript in the context of the page or use Puppeteer's API to interact with the page.
     const content = await page.content();
@@ -41,10 +59,12 @@ app.post('/', async function (req, res) {
     // And now, the JSON format we are going to expose
     var json = {
         measurement: unit == 'km' ? 'km' : 'm',
-        distance: unit == 'km' ? distance / 1000 : distance 
+        distance: unit == 'km' ? distance / 1000 : distance
     };
 
     return res.json(json);
 });
 
 app.listen('3001', () => console.log('API is running on http://localhost:3001'));
+
+module.exports.handler = serverless(app);
