@@ -2,10 +2,11 @@
   "name": "direction-api",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "api.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "node index.js"
+    "dev": "node functions/api.js",
+    "build": "netlify deploy --prod"
   },
   "author": "",
   "license": "ISC",
