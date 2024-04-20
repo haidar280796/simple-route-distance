@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="assets/leaflet/leaflet.css" />
+    <link rel="stylesheet" href="assets/leaflet-routing-machine/leaflet-routing-machine.css" />
+    <style>
+        body {
+            padding: 20px;
+            font-family: arial;
+        }
+
+        * {
+            padding: 0;
+            margin: 0;
+        }
+
+        #map {
+            width: 100%;
+            height: calc(100vh - 100px);
+        }
+    </style>
+    <title>Get Distances between two points</title>
+</head>
+
+<body>
+    <!-- map container -->
+    <div id="map"></div>
+
+    <div id="result">reuslt</div>
+
+    <script src="assets/leaflet/leaflet.js"></script>
+    <script src="assets/leaflet-routing-machine/leaflet-routing-machine.min.js"></script>
+
+    <script>
+        //http://localhost:8888/direction/map.html?lat1=-6.932490675928085&lon1=107.58469594920304&lat2=-7.002111970754793&lon2=107.58918599682428
+
+        const queryString = window.location.search;
+        // console.log(queryString);
+        const urlParams = new URLSearchParams(queryString);
+        const lat1 = urlParams.get('lat1')
+        const lon1 = urlParams.get('lon1')
+        const lat2 = urlParams.get('lat2')
+        const lon2 = urlParams.get('lon2')
+
+        var mapOptions = {
+            center: [lat1, lon1],
+            zoom: 13
+        }
+        var map = new L.map('map', mapOptions);
+        var layer = new L.TileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
+
+        map.addLayer(layer);
+
+        var routeControl = L.Routing.control({
+            waypoints: [
+                L.latLng(lat1, lon1),
+                L.latLng(lat2, lon2)
+            ],
+            routeWhileDragging: true,
+            show: false,
+        }).addTo(map);
+
+        routeControl.on('routesfound', function (e) {
+            var routes = e.routes;
+            var summary = routes[0].summary;
+            // alert('Total distance is ' + summary.totalDistance / 1000 + ' km and total time is ' + Math.round(summary.totalTime % 3600 / 60) + ' minutes');
+            document.getElementById('result').innerText = summary.totalDistance
+        });
+
+    </script>
+
+</body>
+
+</html>
